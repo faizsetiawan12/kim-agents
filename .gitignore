@@ -1,0 +1,23 @@
+# secrets — never commit values
+.env
+*.pem
+*credentials*.json
+*token*.json
+**/sheets-key.json
+
+# local-only agent state
+**/memory/
+**/MEMORY.md
+migration-backups/
+.openclaw/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# editors / OS
+.DS_Store
+*.swp
+*~

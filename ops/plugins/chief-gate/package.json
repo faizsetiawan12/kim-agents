@@ -1,0 +1,11 @@
+{
+  "name": "chief-gate",
+  "version": "1.0.0",
+  "description": "Requires KIM Engineer Bot final completion summaries to have a TASK COMPLETE report filed with Chief while allowing alerts and approval requests.",
+  "main": "index.js",
+  "openclaw": {
+    "plugin": {
+      "kind": "tool"
+    }
+  }
+}

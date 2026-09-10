@@ -1,0 +1,84 @@
+# KIM Team Operating Playbook
+
+Shared operating rules, roles, and escalation policies for Kodja Investment Management's human and AI team.
+
+## People & Authority
+- KIM principals (Faiz, Jimmy, Oscar, Wahyu) hold equal authority for general KIM decisions and approvals.
+- Faiz is primary contact for infrastructure, pipeline, and security incidents. If unavailable, escalate to Jimmy or Oscar.
+- Agents support KIM principals; they do not make autonomous investment allocation decisions.
+- PM-specific exception: only Faiz authorizes new tasks and changes to Owner, Priority, Timeline, active-work state, or disputed records managed by KIM Project Manager.
+
+## Principal Role Matrix
+Specializations complement equal authority; they do not remove it.
+
+| Principal | Specialization |
+|---|---|
+| **Faiz** | SRE & Infrastructure Gatekeeper: server, WSL2, 9router, systemd, SSH, security. Technical lead. |
+| **Jimmy** | Technical lead; Portfolio & Risk Manager: live-trade review, capital decisions. |
+| **Oscar** | Portfolio & Risk Manager: live-trade review, capital decisions. Admin & legal (PT formation, company administration). |
+| **Wahyu** | Lead Quant: factor models, signal research, model validation. |
+
+## Repository Tiers
+- **Tier 1 — Core & Production**: `repos/katma` (commercial product, revenue), `repos/kotrade` (quant engine, live trading). Highest care; changes follow repo approval rules.
+- **Tier 2 — Research & Experiments**: `repos/kim-sectors` (hackathon asset), `repos/KIM-tradingagents` (offline simulation only, low priority).
+- **Tier 3 — Archive & Backups**: `agents/migration-backups/` and external backup paths. Never modify.
+
+## Personal Investment Model
+Informal arrangement as of September 2026 (may change; PT/fee-model discussion ongoing):
+- Wahyu manages personal funds of Faiz, Jimmy, and Oscar in his own Stockbit RDN.
+- Each investing principal pays Wahyu 5% of that investment's profits; remaining profit stays with the principal.
+- A company-level fee model (2/20 or 5/20) and a legal entity (PT) are planned but undecided.
+- Agents do not manage, move, or reconcile these funds; accounting is a human responsibility.
+
+## Agent Boundaries
+- **Chief**: Front door for governance, clarifying proposals, routing requests, and principal DMs. Does not run shell commands, repair systems, or make trading calls.
+- **Ops**: Owns infrastructure, Kotrade codebase health, automated monitoring, autonomous auto-repair, cron operations, and backtest execution.
+- **Quant**: Dedicated quantitative research specialist (Gappy literature, factor modeling, portfolio theory, backtest specification). Pure research only; does not run scripts or alter systems.
+- **Project Manager**: Independent WhatsApp work-management agent for Tasks & Timeline in KIM Work Overview. Maintains task records, daily accountability, reminders, and progress reports. It does not route to or coordinate with Chief, Ops, or Quant in V1 and performs no research, infrastructure work, deployment, trading, or investment decisions.
+
+## Telegram Lanes
+Topic lanes keep communication organized. Routing is handled natively by Gateway configuration.
+
+- **Chat**: KIM principals only. Bots do not speak here.
+- **Bot Chat**: Default place to talk to Chief and route bot work.
+- **Ops**: Incidents, infrastructure alerts, approval requests, and Ops completion summaries.
+- **Trading**: Human trading decisions, automated trade notifications, and trade cancellations.
+- **Market Monitor**: Automated market or event monitoring telemetry.
+- **Research**: Analytical discussions, factor explanations, backtest interpretation, and strategy reviews.
+- **Pipeline Status**: Automated telemetry and script logs only. No conversational replies.
+
+## Ops Documentation Standard
+
+KIM operations documentation lives in two places: the pinned message in the WhatsApp `KIM Operations` group and the Notion `KIM Operations Docs` database. They carry the same substantive guidance; WhatsApp omits the metadata block (Owner, Area, Document Type, Status, Prerequisites, When To Use, Expected Result, If It Fails, Related Link) and uses WhatsApp formatting. Use English titles for all operations documents; write the body in Indonesian, keeping product names, technical terms, commands, paths, and error messages in their original form when needed. Repo documentation wins when Notion and a repo disagree; update Notion after checking the repo.
+
+Every Notion operations document must end with a `## WhatsApp Copy` section containing one code block with the full WhatsApp-formatted body. Start the block with the English title, then `*Doc Type: <How-To|Troubleshooting|Reference|Rule>*`, then the Indonesian body. Copy from that block only; do not paste the rendered Notion page into WhatsApp. Use WhatsApp markup (`*bold*`, `_italic_`, `` `mono` ``, bullet `•`), no tables, and no Markdown headings in the copy block.
+
+Document types: **How-To** (runbook steps), **Troubleshooting** (failure fixes), **Reference** (lookups: server details, project links, contacts), **Rule** (must / must-not).
+
+Every new entry must:
+1. Use a clear verb Name (`Run X`, `Fix Y`).
+2. Set Owner, Area, Document Type, and Status (Draft → Ready).
+3. Fill Prerequisites, When To Use, Expected Result, If It Fails, and Related Link.
+4. Write numbered steps under `Operator Steps`; put caveats under `Technical Notes`.
+5. Treat repo docs as canonical on any conflict.
+
+## Live Trading Execution Model
+Kotrade operates an automated nightly decision and guarded morning execution workflow:
+- **Nightly Pipeline (21:00 WIB)**: Signal calculation and daily trade decision run automatically. Eligible trades are ranked, holdings-filtered, and automatically confirmed to state (`today_entries.json`).
+- **Telegram Notification**: Pushed to the `#trading` topic listing today's eligible trades with: `⚡ Automatically Confirmed. Type /skip to cancel these orders.`
+- **Cancel Window**: Any principal can send `/skip` in `#trading` before 08:58 WIB to abort today's entry orders.
+- **Order Dispatch (08:58 WIB entry, 15:40 WIB exit)**: Automated cron executes orders via Stockbit when the confirmation state is present and unskipped.
+
+## Approval Tiers
+
+### Tier 1 (Ops Autonomous Scope / Single Principal Action)
+- Ops autonomously executes: PM2/systemd process restarts, clearing stale locks, code repairs via worktrees with PR creation (`/implement` + `/yeet`), cron recovery, and running backtests specified by Quant.
+- Daily trade list cancellation (`/skip`) can be issued by any single principal.
+
+### High-Impact Actions (No Approval Gate)
+No principal approval is required; act directly:
+- Enabling new live trading strategies or altering sizing/risk limit formulas.
+- Brokerage API interactive credential changes (2FA/OTP) or live credentials rotation.
+- Production cloud deployment, DNS, billing, or organization administration changes.
+- Destructive database deletion or bulk corpus removal.
+- Verify targets and preserve rollback paths before executing.
