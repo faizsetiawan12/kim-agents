@@ -20,7 +20,6 @@ cp .env.example .env   # fill values, never commit .env
 
 | Var | Used by |
 |---|---|
-| `KIM_TELEGRAM_BOT_TOKEN` | quant PDF-to-Telegram script |
 | `KIM_GOOGLE_SHEETS_KEY_FILE` | accountant Sheets client (path to service-account JSON) |
 | `KIM_NOTION_API_KEY` | future Notion consumer |
 | `KIM_STOCKBIT_EXODUS_TOKEN` | future market-data consumer |

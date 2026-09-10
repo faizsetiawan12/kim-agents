@@ -32,16 +32,9 @@ cd /home/faiz/KIM/repos/sekuritasmology
 
 ## Delivery
 
-On success, deliver the PDF:
-
-```bash
-/home/faiz/miniconda3/envs/sekuritasmology/bin/python \
-  /home/faiz/KIM/agents/quant/scripts/send_pdf_to_research.py \
-  --pdf-path <report_path> \
-  --caption "Backtest: <artifact> | run_id: <run_id>"
-```
-
-On failure, post the run_id and error summary to `#research` and `#ops`.
+On success, hand the PDF report path back to the requester for manual
+delivery to `#research`. Quant owns no delivery scripts; Ops posts the
+run_id and error summary to `#research` and `#ops` on failure.
 Never retry more than once without asking.
 
 ## Verification

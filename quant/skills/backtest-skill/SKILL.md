@@ -141,7 +141,8 @@ report_mode: both
 Instructions:
 1. cd /home/faiz/KIM/repos/sekuritasmology
 2. Run the canonical backtest via the canonical interpreter.
-3. On completion, deliver the PDF to #research with caption
+3. On completion, return the PDF report path to the requester for manual
+delivery to #research with caption
    "Backtest: <artifact> | run_id: <run_id>".
 ```
 

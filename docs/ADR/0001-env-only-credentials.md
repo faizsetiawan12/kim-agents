@@ -6,15 +6,12 @@
 
 ## Context
 
-Agent scripts loaded secrets three different ways: one read `os.environ`
-(`quant/scripts/send_pdf_to_research.py` → `QUANT_TELEGRAM_BOT_TOKEN`), one
-hardcoded an absolute host path (`accountant/scripts/google_sheets.py` →
-`/home/faiz/.config/google/sheets-key.json`), the rest referenced paths only
-in prose. No `.env` files existed, no `dotenv` loading, no shared convention.
-
-Hardcoded paths break on any other machine. Committed secrets would leak on
-a public repo. Token values were found in `pm/memory/` chat logs — proof
-that anything outside `.gitignore` eventually leaks.
+Agent scripts loaded secrets inconsistently: hardcoded absolute host paths
+(e.g. `/home/faiz/.config/...`) alongside prose-only references, with no
+shared convention and no `.env` support. Hardcoded paths break on any other
+machine. Committed secrets would leak on a public repo. Token values were
+found in `pm/memory/` chat logs — proof that anything outside `.gitignore`
+eventually leaks.
 
 ## Decision
 
@@ -34,7 +31,6 @@ Canonical vars:
 
 | Var | Consumer | Notes |
 |---|---|---|
-| `KIM_TELEGRAM_BOT_TOKEN` | `quant/scripts/send_pdf_to_research.py` | Renamed from `QUANT_TELEGRAM_BOT_TOKEN` |
 | `KIM_GOOGLE_SHEETS_KEY_FILE` | `accountant/scripts/google_sheets.py` | Path to service-account JSON, never the JSON itself |
 | `KIM_NOTION_API_KEY` | future | Documented, no consumer yet |
 | `KIM_STOCKBIT_EXODUS_TOKEN` | future | Market-data layer, documented only |
