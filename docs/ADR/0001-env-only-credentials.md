@@ -40,7 +40,7 @@ Canonical vars:
 
 - `accountant` and `quant` scripts fail fast with the missing var name when
   unset — no traceback leak, no silent default.
-- `.env.example` lists all five vars with placeholder values; real `.env`
+- `.env.example` lists all six vars with placeholder values; real `.env`
   stays gitignored and local-only.
 - `**/memory/`, `migration-backups/`, `*.pem`, `*credentials*.json` stay
   excluded from the public tree — chat logs already contained live bot

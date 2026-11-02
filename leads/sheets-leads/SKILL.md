@@ -7,16 +7,17 @@ description: |
 metadata: {"clawdbot":{"emoji":"📊"}}
 ---
 
-# Sheets-Leads Skill (PM Read-Only Scope)
+# Sheets-Leads Skill (parked)
 
-PM uses this skill to read the KATMA leads tracker. Read-only. No writes ever.
+Not wired to any agent. Kept with the reader for a future leads owner; see
+`../README.md`. Read-only. No writes ever.
 
 ## Permitted Operations
 
 - **Read** rows from the leads sheet tabs `Firms` and `Tracker` via
-  `pm/scripts/leads_sheets.py` (uses `KIM_GOOGLE_SHEETS_KEY_FILE`, same
+  `../leads_sheets.py` (uses `KIM_GOOGLE_SHEETS_KEY_FILE`, same
   service account as accountant).
-- **Count** funnel stages with `funnel_counts()` for 08:00/18:00 reports.
+- **Count** funnel stages with `funnel_counts()`.
 - Leads sheet ID comes from env `KIM_LEADS_SHEET_ID` only.
 
 ## Forbidden Operations
