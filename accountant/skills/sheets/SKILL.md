@@ -13,7 +13,7 @@ Accountant uses this skill for the single live RDN book only.
 
 ## Permitted Operations
 
-- **Append** validated rows to `Journal` only (signed amount: deposit/profit positive, withdraw/fee-5pct negative; reversing entries only after Oscar "approve").
+- **Append** validated rows to `Journal` only (signed amount: deposit/profit positive, withdraw/fee-5pct negative; reversing entries only after Oscar "approve"; withdrawal multi-entry sets: withdraw, realized-profit, fee-5pct, deposit-reinvest).
 - **Read** rows or computed balances from `Journal`, `Ledger`, and `ProfitShare` for daily totals and link delivery.
 - Never write directly to `Ledger` or `ProfitShare` (auto-derived via live spreadsheet formulas).
 
@@ -29,8 +29,8 @@ Accountant uses this skill for the single live RDN book only.
 
 - Tabs: `Journal`, `Ledger`, `ProfitShare`.
 - Columns: date-WIB, who-pasted, type, owner, amount-Rp, proof-text (optional, blank if absent), oscar-approved, note.
-- Sheet ID: `1xSPJfRAfR0xj5FNeLGd_-kDXJoPunZa8Gu5bnMF6W-U`
-- Sheet URL: `https://docs.google.com/spreadsheets/d/1xSPJfRAfR0xj5FNeLGd_-kDXJoPunZa8Gu5bnMF6W-U/edit`
+- Sheet ID: resolved via `$KIM_RDN_SHEET_ID` at runtime.
+- Sheet URL: derived from `$KIM_RDN_SHEET_ID` (`https://docs.google.com/spreadsheets/d/$KIM_RDN_SHEET_ID/edit`).
 
 ## Natural Chat Policy
 
@@ -41,4 +41,4 @@ Accountant uses this skill for the single live RDN book only.
 
 ## API Basics
 
-Key lives in a server file only (never in chat, docs, or git). Append, then re-read the row to verify before confirming. If verification fails, disclose failure; never claim success.
+Credentials arrive via `KIM_*` environment variable only (never in chat, docs, or git). Append, then re-read the row to verify before confirming. If verification fails, disclose failure; never claim success.

@@ -21,8 +21,14 @@ Five percent of a realized-profit row, owed to Wahyu. Never charged on losses or
 _Avoid_: commission, cut, admin fee
 
 **Withdraw**:
-Cash taken out of the RDN by a named owner. Reduces balance with no fee.
+Cash taken out of the RDN by a named owner. Reduces balance with no fee. For mark-to-market withdrawals from the initial risk pool, calculated proportionally across principal and net profit, funded via idle cash buyout, with Wahyu's 5% profit fee reinvested into Wahyu's balance.
 _Avoid_: cash out, redemption
+
+**Risk Pool (Old Pool)**:
+The initial pooled capital (Rp14.640.313 across Faiz, Jimmy, Oscar, Wahyu) actively deployed in trading positions. Segregated from subsequent idle cash deposits to prevent profit dilution.
+
+**Idle Cash**:
+Fresh cash deposited into RDN that is not yet deployed in trading risk (e.g. Faiz Rp110.000.000). Provides liquidity for buyouts without diluting trading P&L.
 
 **Reversing-Entry**:
 A new row that cancels a prior wrong row. Old rows are never edited or deleted.
