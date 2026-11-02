@@ -18,6 +18,7 @@ Runtime note: deleting an agent through its runtime CLI **prunes the workspace d
 
 ```bash
 cp .env.example .env   # fill values, never commit .env
+git config core.hooksPath .githooks   # run the PM tests before every commit
 ```
 
 | Var | Used by |
