@@ -10,9 +10,9 @@ Public monorepo of KIM agent workspaces.
 - `accountant/` — frozen reference. Live copy: `~/.hermes/profiles/kim-accountant/` (moved 2026-11-01; see `MOVED.md`).
 - `archive/chief/`, `archive/quant/` — retired workspaces.
 
-Shared context: `CONTEXT.md` (domain terms), `PLAYBOOK.md` (roles, authority).
+Shared context: `GLOSSARY.md` (domain terms), `PLAYBOOK.md` (roles, authority).
 
-Migration note: OpenClaw `agents delete` **prunes the workspace directory** (it moves to `~/.Trash`). Restore tracked files with `git restore --worktree <agent>` and untracked files from Trash.
+Runtime note: deleting an agent through its runtime CLI **prunes the workspace directory** (it moves to `~/.Trash`). Restore tracked files with `git restore --worktree <agent>` and untracked files from Trash.
 
 ## Setup
 
