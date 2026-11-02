@@ -7,7 +7,7 @@ Public monorepo of KIM agent workspaces.
 - `pm/` — work management (WhatsApp, Notion).
 - `sentry/` — infrastructure, pipelines, Kotrade operations.
 - `growth/` — commercial outreach (idle/standby).
-- `accountant/` — frozen reference. Live copy: `~/.hermes/profiles/kim-accountant/` (moved 2026-11-01; see `MOVED.md`).
+- `accountant/` — frozen reference. Live copy: `~/.hermes/profiles/kim-accountant/` (moved 2026-11-01; see `accountant/MOVED.md`).
 - `archive/chief/`, `archive/quant/` — retired workspaces.
 
 Shared context: `GLOSSARY.md` (domain terms), `PLAYBOOK.md` (roles, authority).

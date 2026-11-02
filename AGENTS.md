@@ -1,6 +1,7 @@
 # AGENTS.md — kim-agents
 
-Public monorepo of KIM agent workspaces (Chief, Ops, Quant, PM, Accountant)
+Public monorepo of KIM agent workspaces (Delivery, Sentry, Growth, Accountant;
+Chief and Quant archived)
 plus shared context. See `CONTEXT.md` for domain terms, `PLAYBOOK.md` for
 roles and authority.
 
