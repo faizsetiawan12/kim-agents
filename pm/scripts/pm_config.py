@@ -10,7 +10,6 @@ TZ = ZoneInfo("Asia/Jakarta")
 
 NOTION_DATA_SOURCE_ID = "8400948e-d63e-4ba3-ba2b-08ae7774f7e0"
 NOTION_API_VERSION = "2025-09-03"
-NOTION_ENV = Path.home() / ".config" / "notion" / "notion.env"
 
 WHATSAPP_ACCOUNT = "pm"
 WHATSAPP_GROUP = "120363430488414303@g.us"

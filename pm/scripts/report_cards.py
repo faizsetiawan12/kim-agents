@@ -14,18 +14,28 @@ from notion_tasks import Task
 MONTHS = ("Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des")
 NO_OWNER = "Tanpa owner"
 
+STATUS_DONE = "Done"
+STATUS_ACTIVE = "In Progress"
+STATUS_BACKLOG = "Todo"
+
 
 def format_date(value: date) -> str:
     return f"{value.day} {MONTHS[value.month - 1]} {value.year}"
 
 
 def is_overdue(task: Task, today: date) -> bool:
-    """Late means a deadline strictly before today on anything not yet Done."""
-    return task.status != "Done" and task.timeline is not None and task.timeline < today
+    """Late means a deadline strictly before today on unfinished, scheduled work.
+
+    Backlog items carry no deadline by policy, so a stray Timeline on a Todo
+    must not start an overdue alert.
+    """
+    if task.status in (STATUS_DONE, STATUS_BACKLOG) or task.timeline is None:
+        return False
+    return task.timeline < today
 
 
 def is_open(task: Task, today: date) -> bool:
-    return task.status == "In Progress" or is_overdue(task, today)
+    return task.status == STATUS_ACTIVE or is_overdue(task, today)
 
 
 def _owner_header(owner: str) -> str:
@@ -80,7 +90,7 @@ def morning_card(tasks: list[Task], today: date) -> str | None:
 
 def evening_card(tasks: list[Task], today: date, note: str | None = None) -> str:
     """18:00 card. Always returned; `note` is the optional chat paragraph."""
-    done_today = [task for task in tasks if task.status == "Done" and task.last_update == today]
+    done_today = [task for task in tasks if task.status == STATUS_DONE and task.last_update == today]
     active = [task for task in tasks if is_open(task, today)]
 
     lines = [f"📊 *Progress Hari Ini — {format_date(today)}*", ""]

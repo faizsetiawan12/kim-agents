@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import sys
-import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
@@ -44,18 +44,14 @@ class ParseTaskTest(unittest.TestCase):
 
 
 class LoadApiKeyTest(unittest.TestCase):
-    def test_reads_value_and_ignores_other_lines(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "notion.env"
-            path.write_text("OTHER=x\nNOTION_API_KEY=secret_123\n")
-            self.assertEqual(notion_tasks.load_api_key(path), "secret_123")
+    def test_reads_value_from_environment(self):
+        with mock.patch.dict("os.environ", {"NOTION_API_KEY": "secret_123"}):
+            self.assertEqual(notion_tasks.load_api_key(), "secret_123")
 
-    def test_missing_key_raises(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "notion.env"
-            path.write_text("OTHER=x\n")
-            with self.assertRaises(RuntimeError):
-                notion_tasks.load_api_key(path)
+    def test_missing_key_names_the_variable(self):
+        with mock.patch.dict("os.environ", {}, clear=True):
+            with self.assertRaisesRegex(RuntimeError, "NOTION_API_KEY"):
+                notion_tasks.load_api_key()
 
 
 if __name__ == "__main__":

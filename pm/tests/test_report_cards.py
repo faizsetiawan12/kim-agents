@@ -55,6 +55,13 @@ class MorningCardTest(unittest.TestCase):
         )
         self.assertIn("🔴 Blocked telat", card)
 
+    def test_backlog_task_with_a_stray_deadline_is_not_overdue(self):
+        card = report_cards.morning_card(
+            [task("Backlog", "Todo", timeline=date(2026, 10, 1)), task("Aktif")], TODAY
+        )
+        self.assertNotIn("Backlog", card)
+        self.assertIsNone(report_cards.morning_card([task("Backlog", "Todo", timeline=date(2026, 10, 1))], TODAY))
+
     def test_missing_owner_gets_its_own_block(self):
         card = report_cards.morning_card([task("Tanpa", owners=())], TODAY)
         self.assertIn("Tanpa owner", card)

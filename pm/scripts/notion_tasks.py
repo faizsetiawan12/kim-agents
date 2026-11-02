@@ -7,12 +7,14 @@ so a report can never mutate a task.
 from __future__ import annotations
 
 import json
+import os
 import urllib.request
 from dataclasses import dataclass
 from datetime import date
-from pathlib import Path
 
 import pm_config
+
+API_KEY_ENV = "NOTION_API_KEY"
 
 
 @dataclass(frozen=True)
@@ -24,13 +26,12 @@ class Task:
     last_update: date | None = None
 
 
-def load_api_key(path: Path | None = None) -> str:
-    """Read NOTION_API_KEY out of the env file the gateway also uses."""
-    path = Path(path or pm_config.NOTION_ENV)
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if line.startswith("NOTION_API_KEY="):
-            return line.split("=", 1)[1].strip()
-    raise RuntimeError(f"NOTION_API_KEY not found in {path}")
+def load_api_key() -> str:
+    """Read the Notion token from the environment, failing fast on the var name."""
+    key = os.environ.get(API_KEY_ENV, "").strip()
+    if not key:
+        raise RuntimeError(f"{API_KEY_ENV} is not set")
+    return key
 
 
 def _text(prop: dict) -> str:
