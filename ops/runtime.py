@@ -9,7 +9,6 @@ import subprocess
 import datetime
 import re
 import signal
-import urllib.request
 
 from operations import Store, SERVICES, card, send_telegram
 
@@ -22,27 +21,13 @@ def probe(unit):
     try:
         if run(['systemctl', '--user', 'is-active', '--quiet', unit], timeout=15).returncode != 0:
             return False
-        if unit == '9router.service':
-            key = os.environ['KIM_OPS_ROUTER_KEY']
-            req = urllib.request.Request('http://127.0.0.1:20128/v1/models', headers={'Authorization': 'Bearer '+key})
-            with urllib.request.urlopen(req, timeout=10) as response:
-                return bool(json.load(response).get('data'))
-        if unit == 'hermes-gateway.service':
-            state = json.loads((Path.home()/'.hermes/gateway_state.json').read_text())
-            os.kill(int(state['pid']), 0)
-            return state.get('platforms', {}).get('kim-ops:telegram', {}).get('state') == 'connected'
-        if unit == 'openclaw-gateway.service':
-            result = run(['openclaw', 'health', '--json', '--timeout', '5000'], capture_output=True, text=True, timeout=15)
-            text = result.stdout
-            data = json.loads(text[text.index('{'):])
-            return result.returncode == 0 and data.get('ok') is True
         # Kotrade's application/trading path is not exercised by a watchdog.
         return True
     except (OSError, subprocess.TimeoutExpired, KeyError, ValueError):
         return False
 
 
-READINESS_UNITS = {'9router.service', 'hermes-gateway.service', 'openclaw-gateway.service'}
+READINESS_UNITS = set()  # no KIM service has an application readiness verifier yet
 
 
 def investigate(args, timeout):

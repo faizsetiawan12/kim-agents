@@ -126,9 +126,8 @@ def send_telegram(body):
         raise RuntimeError('Telegram delivery failed; message retained for retry.') from None
 
 
-SERVICES = {'Hermes gateway': 'hermes-gateway.service',
-            'AI gateway': '9router.service', 'OpenClaw gateway': 'openclaw-gateway.service',
-            'Kotrade messaging': 'kotrade-bot.service'}
+# KIM-owned services only. Shared infrastructure (Hermes, 9router, OpenClaw) is not Ops's scope.
+SERVICES = {'Kotrade messaging': 'kotrade-bot.service'}
 
 
 def main():

@@ -24,7 +24,7 @@ class SupervisorTest(unittest.TestCase):
                 path = binaries/name; path.write_text(text);path.chmod(0o700)
             store = Store(home/'runtime/state.sqlite'); self.addCleanup(store.close)
             runtime.initialize(store)
-            store.observe('AI gateway', False, 'Unavailable.')
+            store.observe('Kotrade messaging', False, 'Unavailable.')
             sent=[]
             with patch.dict(os.environ, {'PATH':str(binaries)+':'+os.environ['PATH']}), patch.object(runtime, 'send_telegram', sent.append):
                 runtime.repair(store,home)
@@ -46,13 +46,13 @@ class SupervisorTest(unittest.TestCase):
     def test_incident_approval_preserves_budget(self):
         with tempfile.TemporaryDirectory() as temp:
             store=Store(Path(temp)/'state.sqlite');self.addCleanup(store.close)
-            store.observe('AI gateway',False,'Unavailable.')
+            store.observe('Kotrade messaging',False,'Unavailable.')
             incident=store.status()[0]['incident_id']
-            self.assertEqual(store.claim_repair('AI gateway'),1)
-            store.outcome('AI gateway',{'status':'blocked','summary':'Approve a specific configuration change.'})
-            self.assertIsNone(store.claim_repair('AI gateway'))
+            self.assertEqual(store.claim_repair('Kotrade messaging'),1)
+            store.outcome('Kotrade messaging',{'status':'blocked','summary':'Approve a specific configuration change.'})
+            self.assertIsNone(store.claim_repair('Kotrade messaging'))
             self.assertIn('Blocked:',runtime.status(store))
             runtime.approve_repair(store,incident,'Apply the proposed configuration change.')
-            self.assertEqual(store.claim_repair('AI gateway'),2)
-            self.assertIsNone(store.claim_repair('AI gateway'))
+            self.assertEqual(store.claim_repair('Kotrade messaging'),2)
+            self.assertIsNone(store.claim_repair('Kotrade messaging'))
             self.assertIn('Two attempts',runtime.approve_repair(store,incident,'Retry the investigation.'))
