@@ -45,7 +45,7 @@ class Store:
                 ON CONFLICT(target) DO UPDATE SET healthy=excluded.healthy,
                 attempts=CASE WHEN incidents.healthy != excluded.healthy THEN 0 ELSE incidents.attempts END,
                 detail=excluded.detail, checked_at=excluded.checked_at''',
-                (target, int(healthy), detail, datetime.datetime.now(datetime.timezone.utc).isoformat()))
+                (target, int(healthy), '' if healthy else detail, datetime.datetime.now(datetime.timezone.utc).isoformat()))
 
     def claim_repair(self, target):
         # Commit the budget before launching work, including when the worker crashes.
