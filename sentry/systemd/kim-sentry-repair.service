@@ -1,0 +1,12 @@
+[Unit]
+Description=KIM Sentry durable incident investigation and repair worker
+
+[Service]
+Type=oneshot
+Environment=KIM_SENTRY_HOME=/home/faiz/.hermes/profiles/sentry
+Environment=PATH=/home/faiz/.local/bin:/usr/bin:/bin
+WorkingDirectory=/home/faiz/.hermes/profiles/sentry
+ExecStart=/usr/bin/python /home/faiz/KIM/agents/sentry/launch.py repair
+TimeoutStartSec=3600
+KillMode=control-group
+UMask=0077

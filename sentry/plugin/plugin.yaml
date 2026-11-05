@@ -1,0 +1,11 @@
+name: kim-sentry
+version: 1.0.0
+description: Deterministic private Sentry health and repair controls.
+author: Faiz
+provides_commands:
+  - health
+  - pause_repairs
+  - resume_repairs
+  - approve_repair
+provides_tools:
+  - sentry_status

@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+import uuid
 import subprocess
 import urllib.request
 
@@ -25,9 +26,15 @@ class Store:
                 target TEXT PRIMARY KEY, healthy INTEGER NOT NULL,
                 attempts INTEGER NOT NULL DEFAULT 0, detail TEXT NOT NULL,
                 checked_at TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS incident_history (incident_id TEXT PRIMARY KEY, target TEXT NOT NULL, evidence TEXT NOT NULL, closed_at TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS outbox (
                 id INTEGER PRIMARY KEY, body TEXT NOT NULL, sent INTEGER NOT NULL DEFAULT 0);
         ''')
+        columns = {row[1] for row in self.db.execute('PRAGMA table_info(incidents)')}
+        for name, definition in [('incident_id', "TEXT NOT NULL DEFAULT ''"), ('blocked', 'INTEGER NOT NULL DEFAULT 0'), ('evidence', "TEXT NOT NULL DEFAULT ''")]:
+            if name not in columns:
+                self.db.execute(f'ALTER TABLE incidents ADD COLUMN {name} {definition}')
+        self.db.commit()
 
     def close(self):
         self.db.close()
@@ -38,29 +45,50 @@ class Store:
             previous = self.db.execute('SELECT healthy FROM incidents WHERE target=?', (target,)).fetchone()
             changed = previous is None or bool(previous[0]) != healthy
             if changed and (not healthy or previous is not None):
-                title = f'🟢 Sentry — {target} restored' if healthy else f'🔴 Sentry — {target} unavailable'
-                body = 'The health check passed.' if healthy else detail
+                title = f'🟢 Sentry — {target} check passed again' if healthy else f'🔴 Sentry — {target} unavailable'
+                body = 'The configured check passed. This alone does not establish application recovery.' if healthy else detail
                 self.db.execute('INSERT INTO outbox(body) VALUES (?)', (card(title, body),))
-            self.db.execute('''INSERT INTO incidents VALUES (?, ?, 0, ?, ?)
+            self.db.execute('''INSERT INTO incidents(target,healthy,attempts,detail,checked_at) VALUES (?, ?, 0, ?, ?)
                 ON CONFLICT(target) DO UPDATE SET healthy=excluded.healthy,
-                attempts=CASE WHEN incidents.healthy != excluded.healthy THEN 0 ELSE incidents.attempts END,
+                attempts=incidents.attempts,
                 detail=excluded.detail, checked_at=excluded.checked_at''',
                 (target, int(healthy), '' if healthy else detail, datetime.datetime.now(datetime.timezone.utc).isoformat()))
+            if not healthy:
+                self.db.execute("UPDATE incidents SET incident_id=? WHERE target=? AND incident_id=''", (uuid.uuid4().hex, target))
 
     def claim_repair(self, target):
         # Commit the budget before launching work, including when the worker crashes.
         with self.db:
             row = self.db.execute('''UPDATE incidents SET attempts=attempts+1
-                WHERE target=? AND healthy=0 AND attempts<2 RETURNING attempts''', (target,)).fetchone()
+                WHERE target=? AND healthy=0 AND attempts<2 AND blocked=0 RETURNING attempts''', (target,)).fetchone()
             return row[0] if row else None
 
+    def confirm_recovery(self, target):
+        # Only an application readiness verifier or explicit operator may close it.
+        with self.db:
+            row = self.db.execute('SELECT incident_id,evidence FROM incidents WHERE target=? AND healthy=1', (target,)).fetchone()
+            if row and row[0]:
+                self.db.execute('INSERT OR IGNORE INTO incident_history VALUES (?,?,?,?)',
+                    (row[0], target, row[1], datetime.datetime.now(datetime.timezone.utc).isoformat()))
+            self.db.execute("UPDATE incidents SET attempts=0,blocked=0,incident_id='',evidence='' WHERE target=? AND healthy=1", (target,))
+
+    def outcome(self, target, data):
+        previous = self.db.execute('SELECT evidence FROM incidents WHERE target=?', (target,)).fetchone()
+        previous = json.loads(previous[0]) if previous and previous[0] else {}
+        for key in ('issue_url', 'pr_url', 'approval', 'approval_history'):
+            if not data.get(key) and previous.get(key):
+                data[key] = previous[key]
+        with self.db:
+            self.db.execute('UPDATE incidents SET blocked=?,evidence=? WHERE target=?',
+                            (int(data.get('status') == 'blocked'), json.dumps(data), target))
+
     @contextmanager
-    def exclusive(self, purpose):
+    def exclusive(self, purpose, blocking=True):
         # Kernel-owned locks release on worker death; hold a repair lock through
         # claim, execution and verification, never only through claiming budget.
         lock_path = self.path.with_name(self.path.name + '.' + purpose + '.lock')
         with lock_path.open('a') as lock:
-            fcntl.flock(lock, fcntl.LOCK_EX)
+            fcntl.flock(lock, fcntl.LOCK_EX | (0 if blocking else fcntl.LOCK_NB))
             try:
                 yield
             finally:
@@ -78,8 +106,8 @@ class Store:
                     self.db.execute('UPDATE outbox SET sent=1 WHERE id=?', (ident,))
 
     def status(self):
-        return [dict(zip(('target', 'healthy', 'repair_attempts', 'detail', 'checked_at'), row))
-                for row in self.db.execute('SELECT target,healthy,attempts,detail,checked_at FROM incidents ORDER BY target')]
+        return [dict(zip(('target', 'healthy', 'repair_attempts', 'detail', 'checked_at', 'incident_id', 'blocked', 'evidence'), row))
+                for row in self.db.execute('SELECT target,healthy,attempts,detail,checked_at,incident_id,blocked,evidence FROM incidents ORDER BY target')]
 
 
 def send_telegram(body):
