@@ -108,7 +108,7 @@ def approve_repair(store, incident, scope, new_budget=False):
 
 
 def tick(store):
-    # systemd serializes this service. The file lock also protects manual invocations.
+    # cron's flock serializes scheduled runs. This file lock also protects manual invocations.
     with store.exclusive('check'):
         for label, unit in SERVICES.items():
             healthy = probe(unit)
@@ -120,7 +120,13 @@ def tick(store):
                 except BlockingIOError:
                     pass
         if not paused(store) and any(not row['healthy'] and row['repair_attempts'] < 2 and not row['blocked'] for row in store.status()):
-            run(['systemctl', '--user', 'start', '--no-block', 'kim-sentry-repair.service'], timeout=15)
+            try:
+                with store.exclusive('repair', blocking=False):
+                    subprocess.Popen(['/usr/bin/python', str(Path(__file__).with_name('launch.py')), 'repair'],
+                        env=dict(os.environ), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL, start_new_session=True)
+            except BlockingIOError:
+                pass
         store.deliver(send_telegram)
 
 
