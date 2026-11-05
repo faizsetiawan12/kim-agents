@@ -1,7 +1,5 @@
 """Host-local Ops supervisor. Product pipelines remain owned by their repos."""
 import argparse
-from contextlib import contextmanager
-import fcntl
 import json
 import os
 from pathlib import Path
@@ -26,8 +24,6 @@ def probe(unit):
     except (OSError, subprocess.TimeoutExpired, KeyError, ValueError):
         return False
 
-
-READINESS_UNITS = set()  # no KIM service has an application readiness verifier yet
 
 
 def investigate(args, timeout):
@@ -97,8 +93,8 @@ def tick(store):
     with store.exclusive('check'):
         for label, unit in SERVICES.items():
             healthy = probe(unit)
-            store.observe(label, healthy, 'The configured service check failed. Investigation is required.')
-            if healthy and unit in READINESS_UNITS:
+            store.observe(label, healthy, 'The service check failed. Ops is investigating and will report the result.')
+            if healthy:
                 try:
                     with store.exclusive('repair', blocking=False):
                         store.confirm_recovery(label)
@@ -180,7 +176,7 @@ A blocked approval must identify exactly what Faiz must approve. Reuse the prior
             # Never announce repair success solely from the model's final answer.
             healthy = probe(SERVICES[target])
             store.observe(target, healthy, 'The configured check still fails after investigation.')
-            if healthy and SERVICES[target] in READINESS_UNITS:
+            if healthy:
                 store.confirm_recovery(target)
             if not healthy:
                 title = '🔴 Ops — Your help is needed' if attempt >= 2 else '🔴 Ops — Repair did not restore service'

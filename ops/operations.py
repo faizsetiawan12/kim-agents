@@ -144,7 +144,7 @@ def main():
                     healthy = result.returncode == 0
                 except (subprocess.TimeoutExpired, OSError):
                     healthy = False
-                store.observe(label, healthy, 'The service check failed. Investigation is required.')
+                store.observe(label, healthy, 'The service check failed. Ops is investigating and will report the result.')
         elif args.command == 'deliver':
             store.deliver(send_telegram)
         print(json.dumps(store.status(), indent=2))

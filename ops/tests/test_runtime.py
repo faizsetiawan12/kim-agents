@@ -34,6 +34,25 @@ class SupervisorTest(unittest.TestCase):
             self.assertTrue(any('Your help is needed' in body for body in sent))
             self.assertFalse(any('restored' in body for body in sent))
 
+    def test_recovered_service_starts_next_incident_with_fresh_budget(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp); (home/'runtime').mkdir()
+            binaries = home/'bin'; binaries.mkdir()
+            for name, code in [('systemctl', 3), ('hermes', 0)]:
+                path = binaries/name; path.write_text(f'#!/bin/sh\nexit {code}\n'); path.chmod(0o700)
+            store = Store(home/'runtime/state.sqlite'); self.addCleanup(store.close)
+            runtime.initialize(store)
+            store.observe('Kotrade messaging', False, 'Unavailable.')
+            first = store.status()[0]['incident_id']
+            self.assertEqual(store.claim_repair('Kotrade messaging'), 1)
+            with patch.dict(os.environ, {'PATH': str(binaries)+':'+os.environ['PATH']}), patch.object(runtime, 'send_telegram', lambda body: None):
+                (binaries/'systemctl').write_text('#!/bin/sh\nexit 0\n')
+                runtime.tick(store)
+                store.observe('Kotrade messaging', False, 'Unavailable again.')
+            row = store.status()[0]
+            self.assertNotEqual(row['incident_id'], first)
+            self.assertEqual(row['repair_attempts'], 0)
+
     def test_pause_survives_restart(self):
         with tempfile.TemporaryDirectory() as temp:
             path=Path(temp)/'state.sqlite'

@@ -1,6 +1,6 @@
 # KIM Ops
 
-Infrastructure reliability and operational recovery across KIM. Products own their processing and correctness checks. KATMA-specific integration is deferred.
+Operational monitoring and recovery for KIM-owned services (today: Kotrade messaging). Shared infrastructure (Hermes, 9router, OpenClaw) is out of scope. Products own their processing and correctness checks. KATMA-specific integration is deferred.
 
 ## Runtime
 Hermes profile: `~/.hermes/profiles/kim-ops/`. Its `SOUL.md` and `skills/ops-repair/SKILL.md` define the approved repair workflow. Private memory stays in that profile; job history and repair budgets live in its runtime database.
