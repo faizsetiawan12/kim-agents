@@ -1,6 +1,6 @@
 ---
-name: sentry-repair
-description: Mandatory workflow for KIM Sentry incident repair and operational code changes.
+name: ops-repair
+description: Mandatory workflow for KIM Ops incident repair and operational code changes.
 ---
 Read the incident and affected repository instructions. Load and follow these skills explicitly:
 1. diagnosing-bugs: reproduce the exact failure before proposing a cause.

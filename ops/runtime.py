@@ -1,4 +1,4 @@
-"""Host-local Sentry supervisor. Product pipelines remain owned by their repos."""
+"""Host-local Ops supervisor. Product pipelines remain owned by their repos."""
 import argparse
 from contextlib import contextmanager
 import fcntl
@@ -23,14 +23,14 @@ def probe(unit):
         if run(['systemctl', '--user', 'is-active', '--quiet', unit], timeout=15).returncode != 0:
             return False
         if unit == '9router.service':
-            key = os.environ['KIM_SENTRY_ROUTER_KEY']
+            key = os.environ['KIM_OPS_ROUTER_KEY']
             req = urllib.request.Request('http://127.0.0.1:20128/v1/models', headers={'Authorization': 'Bearer '+key})
             with urllib.request.urlopen(req, timeout=10) as response:
                 return bool(json.load(response).get('data'))
         if unit == 'hermes-gateway.service':
             state = json.loads((Path.home()/'.hermes/gateway_state.json').read_text())
             os.kill(int(state['pid']), 0)
-            return state.get('platforms', {}).get('sentry:telegram', {}).get('state') == 'connected'
+            return state.get('platforms', {}).get('kim-ops:telegram', {}).get('state') == 'connected'
         if unit == 'openclaw-gateway.service':
             result = run(['openclaw', 'health', '--json', '--timeout', '5000'], capture_output=True, text=True, timeout=15)
             text = result.stdout
@@ -65,7 +65,7 @@ def notify(store, title, detail):
 def status(store):
     rows = store.status()
     if not rows:
-        return 'Sentry has not completed its first health check yet.'
+        return 'Ops has not completed its first health check yet.'
     return '\n'.join(f"{'🟢' if row['healthy'] else '🔴'} {row['target']}: {'check passed' if row['healthy'] else 'check failed'}; checked {row['checked_at']}; AI attempts {row['repair_attempts']}/2." + (f" Incident: {row['incident_id']}." if row['incident_id'] else '') + (f" Blocked: {json.loads(row['evidence']).get('summary', 'Approval required.')}" if row['blocked'] else '')
                      for row in rows)
 
@@ -148,7 +148,7 @@ def repair(store, home):
 Target: {target}. Unit: {SERVICES[target]}. Persisted AI attempt: {attempt}/2.
 Incident ID: {row['incident_id']}. Prior evidence: {row['evidence'] or 'None'}.
 Service failed its configured check. Recheck before acting.
-Use the sentry-repair skill and all six selected engineering skills in its instructions.
+Use the ops-repair skill and all six selected engineering skills in its instructions.
 Expected behavior: the named service starts, passes its own readiness check, and remains running.
 A process being active alone is not proof that requests or Telegram routing work.
 For code changes: create an incident issue in the affected repository, a NEW git worktree,
@@ -168,9 +168,9 @@ A blocked approval must identify exactly what Faiz must approve. Reuse the prior
             path.write_text(prompt)
             path.chmod(0o600)
             try:
-                result = investigate(['hermes', '-p', 'sentry', 'chat', '--query-file', str(path),
+                result = investigate(['hermes', '-p', 'kim-ops', 'chat', '--query-file', str(path),
                               '--oneshot', '-Q', '--max-turns', '100', '--run-budget', '3300',
-                              '-s', 'sentry-repair'], timeout=3450)
+                              '-s', 'ops-repair'], timeout=3450)
                 summary = (result.stdout or '')[-16000:]
                 for key, value in os.environ.items():
                     if value and any(word in key for word in ('KEY', 'TOKEN', 'SECRET', 'PASSWORD')):
@@ -187,23 +187,23 @@ A blocked approval must identify exactly what Faiz must approve. Reuse the prior
                     outcome = {'status':'unresolved', 'summary':'The worker did not return a valid repair result.'}
                 store.outcome(target, outcome)
                 if outcome['status'] == 'blocked':
-                    notify(store, '🔴 Sentry — Your approval is needed', outcome['summary'][:1000])
+                    notify(store, '🔴 Ops — Your approval is needed', outcome['summary'][:1000])
                     store.deliver(send_telegram)
                     break
             except (OSError, subprocess.TimeoutExpired):
-                notify(store, '🔴 Sentry — Investigation interrupted', 'The repair worker failed or exceeded its time limit. The attempt remains counted.')
+                notify(store, '🔴 Ops — Investigation interrupted', 'The repair worker failed or exceeded its time limit. The attempt remains counted.')
             # Never announce repair success solely from the model's final answer.
             healthy = probe(SERVICES[target])
             store.observe(target, healthy, 'The configured check still fails after investigation.')
             if healthy and SERVICES[target] in READINESS_UNITS:
                 store.confirm_recovery(target)
             if not healthy:
-                title = '🔴 Sentry — Your help is needed' if attempt >= 2 else '🔴 Sentry — Repair did not restore service'
+                title = '🔴 Ops — Your help is needed' if attempt >= 2 else '🔴 Ops — Repair did not restore service'
                 detail = ('Two AI attempts were used. Further automatic repairs have stopped.' if attempt >= 2
                           else 'The service is still unavailable. One AI attempt remains.')
                 notify(store, title, detail)
             else:
-                notify(store, '🟡 Sentry — Service is running', 'The configured check passed after investigation. Full repair evidence is available from Sentry.')
+                notify(store, '🟡 Ops — Service is running', 'The configured check passed after investigation. Full repair evidence is available from Ops.')
             store.deliver(send_telegram)
             break
 
@@ -211,7 +211,7 @@ A blocked approval must identify exactly what Faiz must approve. Reuse the prior
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('action', choices=('check', 'repair', 'status', 'pause', 'resume', 'delivery-test', 'approve-repair'))
-    parser.add_argument('--home', type=Path, default=Path(os.environ.get('KIM_SENTRY_HOME', str(Path.home()/'.hermes/profiles/sentry'))))
+    parser.add_argument('--home', type=Path, default=Path(os.environ.get('KIM_OPS_HOME', str(Path.home()/'.hermes/profiles/kim-ops'))))
     parser.add_argument('--incident', default='')
     parser.add_argument('--approval', default='')
     parser.add_argument('--new-budget', action='store_true')
@@ -224,7 +224,7 @@ def main():
         elif args.action == 'check': tick(store)
         elif args.action == 'repair': repair(store, home)
         elif args.action == 'delivery-test':
-            notify(store, '🟢 Sentry — Delivery test', 'This message was generated and delivered by code without an AI model.')
+            notify(store, '🟢 Ops — Delivery test', 'This message was generated and delivered by code without an AI model.')
             store.deliver(send_telegram)
         else: print(control(store, args.action))
     finally:

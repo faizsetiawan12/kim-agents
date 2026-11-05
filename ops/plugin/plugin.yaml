@@ -1,6 +1,6 @@
-name: kim-sentry
+name: kim-ops
 version: 1.0.0
-description: Deterministic private Sentry health and repair controls.
+description: Deterministic private Ops health and repair controls.
 author: Faiz
 provides_commands:
   - health
@@ -8,4 +8,4 @@ provides_commands:
   - resume_repairs
   - approve_repair
 provides_tools:
-  - sentry_status
+  - ops_status

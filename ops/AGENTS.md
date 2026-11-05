@@ -1,9 +1,9 @@
-# KIM Sentry
+# KIM Ops
 
 Infrastructure reliability and operational recovery across KIM. Products own their processing and correctness checks. KATMA-specific integration is deferred.
 
 ## Runtime
-Hermes profile: `~/.hermes/profiles/sentry/`. Its `SOUL.md` and `skills/sentry-repair/SKILL.md` define the approved repair workflow. Private memory stays in that profile; job history and repair budgets live in its runtime database.
+Hermes profile: `~/.hermes/profiles/kim-ops/`. Its `SOUL.md` and `skills/ops-repair/SKILL.md` define the approved repair workflow. Private memory stays in that profile; job history and repair budgets live in its runtime database.
 
 ## Boundaries
 - Code generates scheduled reports, status, arithmetic, incident state and notifications; scheduled delivery bypasses models.

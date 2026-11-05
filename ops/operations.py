@@ -14,7 +14,7 @@ import urllib.request
 
 def card(title, reason):
     stamp = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=7))).strftime('%H:%M WIB')
-    return f'{title}\n\n• {reason}\n\n{stamp} · Ask Sentry for incident details.'
+    return f'{title}\n\n• {reason}\n\n{stamp} · Ask Ops for incident details.'
 
 
 class Store:
@@ -45,7 +45,7 @@ class Store:
             previous = self.db.execute('SELECT healthy FROM incidents WHERE target=?', (target,)).fetchone()
             changed = previous is None or bool(previous[0]) != healthy
             if changed and (not healthy or previous is not None):
-                title = f'🟢 Sentry — {target} check passed again' if healthy else f'🔴 Sentry — {target} unavailable'
+                title = f'🟢 Ops — {target} check passed again' if healthy else f'🔴 Ops — {target} unavailable'
                 body = 'The configured check passed. This alone does not establish application recovery.' if healthy else detail
                 self.db.execute('INSERT INTO outbox(body) VALUES (?)', (card(title, body),))
             self.db.execute('''INSERT INTO incidents(target,healthy,attempts,detail,checked_at) VALUES (?, ?, 0, ?, ?)
@@ -111,8 +111,8 @@ class Store:
 
 
 def send_telegram(body):
-    token = os.environ['KIM_SENTRY_TELEGRAM_TOKEN']
-    chat = os.environ['KIM_SENTRY_TELEGRAM_CHAT_ID']
+    token = os.environ['KIM_OPS_TELEGRAM_TOKEN']
+    chat = os.environ['KIM_OPS_TELEGRAM_CHAT_ID']
     payload = json.dumps({'chat_id': chat, 'text': body}).encode()
     req = urllib.request.Request(f'https://api.telegram.org/bot{token}/sendMessage', data=payload,
                                  headers={'Content-Type': 'application/json'})

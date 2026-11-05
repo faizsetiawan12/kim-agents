@@ -4,21 +4,21 @@ import json
 from pathlib import Path
 import subprocess
 
-SCRIPT = '/home/faiz/KIM/agents/sentry/runtime.py'
+SCRIPT = '/home/faiz/KIM/agents/ops/runtime.py'
 
 
 def home():
     from hermes_constants import get_hermes_home
     path = get_hermes_home()
-    if path != Path('/home/faiz/.hermes/profiles/sentry'):
-        raise PermissionError('Sentry commands are available only in the Sentry profile.')
+    if path != Path('/home/faiz/.hermes/profiles/kim-ops'):
+        raise PermissionError('Ops commands are available only in the Ops profile.')
     return path
 
 
 def execute(action):
     result = subprocess.run(['/usr/bin/python', SCRIPT, action, '--home', str(home())],
                             capture_output=True, text=True, timeout=20, check=False)
-    return result.stdout.strip() if result.returncode == 0 else 'Sentry could not read its operational state.'
+    return result.stdout.strip() if result.returncode == 0 else 'Ops could not read its operational state.'
 
 
 def authorized(source):
@@ -70,6 +70,6 @@ def register(ctx):
     ctx.register_command('health', health, description='Checked KIM service status; no AI')
     ctx.register_command('pause_repairs', pause, description='Pause automatic repairs; keep monitoring')
     ctx.register_command('resume_repairs', resume, description='Resume automatic repairs')
-    ctx.register_tool(name='sentry_status', toolset='sentry', handler=status_tool,
-                      schema={'name':'sentry_status','description':'Read checked KIM status and repair budgets; use for all factual status queries.', 'parameters':{'type':'object','properties':{}}},
+    ctx.register_tool(name='ops_status', toolset='ops', handler=status_tool,
+                      schema={'name':'ops_status','description':'Read checked KIM status and repair budgets; use for all factual status queries.', 'parameters':{'type':'object','properties':{}}},
                       description='Read deterministic KIM service status', emoji='🛡️')
